@@ -1,0 +1,57 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow"]
+      interval: 5s
+      retries: 5
+
+  airflow-webserver:
+    build:
+      context: ./airflow
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      - AIRFLOW__CORE__FERNET_KEY='your-fernet-key'
+      - AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION='true'
+      - AIRFLOW__CORE__LOAD_EXAMPLES='false'
+      - GOOGLE_APPLICATION_CREDENTIALS=/opt/airflow/gcp-credentials.json
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./dbt:/opt/airflow/dbt
+      - ./scripts:/opt/airflow/scripts
+      - ./gcp-credentials.json:/opt/airflow/gcp-credentials.json
+    ports:
+      - "8080:8080"
+    command: webserver
+
+  dbt:
+    build:
+      context: ./dbt
+      dockerfile: Dockerfile
+    depends_on:
+      - airflow-webserver
+    volumes:
+      - ./dbt:/usr/app/dbt
+      - ./gcp-credentials.json:/usr/app/gcp-credentials.json
+    environment:
+      - GCP_PROJECT_ID=${GCP_PROJECT_ID}
+      - GCS_BUCKET=${GCS_BUCKET}
+      - BQ_DATASET=${BQ_DATASET}
+
+volumes:
+  postgres-db:
