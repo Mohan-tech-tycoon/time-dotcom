@@ -1,5 +1,4 @@
 # docker-compose.yml
-version: '3.8'
 
 services:
   postgres:
@@ -39,19 +38,3 @@ services:
       - "8080:8080"
     command: webserver
 
-  dbt:
-    build:
-      context: ./dbt
-      dockerfile: Dockerfile
-    depends_on:
-      - airflow-webserver
-    volumes:
-      - ./dbt:/usr/app/dbt
-      - ./gcp-credentials.json:/usr/app/gcp-credentials.json
-    environment:
-      - GCP_PROJECT_ID=${GCP_PROJECT_ID}
-      - GCS_BUCKET=${GCS_BUCKET}
-      - BQ_DATASET=${BQ_DATASET}
-
-volumes:
-  postgres-db:
