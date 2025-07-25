@@ -1,0 +1,12 @@
+kaggle
+pandas
+apache-airflow[gcp,google]==2.3.0
+apache-airflow-providers-dbt-cloud
+google-cloud-bigquery
+google-cloud-storage
+requests>=2.28
+dbt-core==1.6.1
+dbt-bigquery
+setuptools
+
+
