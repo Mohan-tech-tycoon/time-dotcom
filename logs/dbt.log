@@ -1,0 +1,30 @@
+[0m19:35:10.960735 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x703b37b2ee40>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x703b3946c190>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x703b36b37d90>]}
+
+
+============================== 19:35:10.967588 | d4997f99-6c9e-4548-a547-be1af084941e ==============================
+[0m19:35:10.967588 [info ] [MainThread]: Running with dbt=1.10.5
+[0m19:35:10.968755 [debug] [MainThread]: running dbt with arguments {'printer_width': '80', 'indirect_selection': 'eager', 'write_json': 'True', 'log_cache_events': 'False', 'partial_parse': 'True', 'cache_selected_only': 'False', 'profiles_dir': '/home/msgrace/.dbt', 'debug': 'False', 'fail_fast': 'False', 'log_path': 'logs', 'version_check': 'True', 'warn_error': 'None', 'use_colors': 'True', 'use_experimental_parser': 'False', 'empty': 'None', 'quiet': 'False', 'no_print': 'None', 'log_format': 'default', 'static_parser': 'True', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'invocation_command': 'dbt init dbt_taxi_data', 'target_path': 'None', 'introspect': 'True', 'send_anonymous_usage_stats': 'True'}
+[0m19:35:10.987588 [debug] [MainThread]: Starter project path: /home/msgrace/workspace/dev-space/de-project/chicago-taxi-trip/time-dotcom/venv/lib/python3.13/site-packages/dbt/include/starter_project
+[0m19:35:10.993750 [info ] [MainThread]: 
+Your new dbt project "dbt_taxi_data" was created!
+
+For more information on how to configure the profiles.yml file,
+please consult the dbt documentation here:
+
+  https://docs.getdbt.com/docs/configure-your-profile
+
+One more thing:
+
+Need help? Don't hesitate to reach out to us via GitHub issues or on Slack:
+
+  https://community.getdbt.com/
+
+Happy modeling!
+
+[0m19:35:10.994665 [info ] [MainThread]: Setting up your profile.
+[0m19:37:24.076387 [info ] [MainThread]: Profile dbt_taxi_data written to /home/msgrace/.dbt/profiles.yml using target's profile_template.yml and your supplied values. Run 'dbt debug' to validate the connection.
+[0m19:37:24.079721 [debug] [MainThread]: Resource report: {"command_name": "init", "command_success": true, "command_wall_clock_time": 133.27637, "process_in_blocks": "496", "process_kernel_time": 1.030253, "process_mem_max_rss": "372712", "process_out_blocks": "88", "process_user_time": 7.593642}
+[0m19:37:24.081705 [debug] [MainThread]: Command `dbt init` succeeded at 19:37:24.081371 after 133.28 seconds
+[0m19:37:24.082846 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x703b1670cfc0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x703b37273890>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x703b1680bce0>]}
+[0m19:37:24.084077 [debug] [MainThread]: Flushing usage events
+[0m19:37:25.044144 [debug] [MainThread]: An error was encountered while trying to flush usage events

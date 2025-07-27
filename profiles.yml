@@ -1,0 +1,28 @@
+dbt_dev:
+  outputs:
+    dev:
+      dataset: taxi_trips
+      job_execution_timeout_seconds: 120
+      job_retries: 1
+      keyfile: /config/
+      location: US
+      method: service-account
+      priority: interactive
+      project: gcp-devspace-coder
+      threads: 2
+      type: bigquery
+  target: dev
+dbt_taxi_data:
+  outputs:
+    dev:
+      dataset: bgq
+      job_execution_timeout_seconds: 120
+      job_retries: 1
+      keyfile: /home/msgrace/workspace/dev-space/de-project/chicago-taxi-trip/time-dotcom/config/gcp-devspace-coder-0a69080761c5.json
+      location: US
+      method: service-account
+      priority: interactive
+      project: gcp-devspace-coder
+      threads: 2
+      type: bigquery
+  target: dev
