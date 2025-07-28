@@ -1,0 +1,25 @@
+
+
+models:
+  - name: stg_taxi_trips
+    description: "Staging model for raw taxi trips data"
+    columns:
+      - name: taxi_id
+        description: "Unique identifier for the taxi/driver"
+        tests:
+          - not_null
+      - name: trip_start_timestamp
+        description: "Timestamp when the trip started"
+        tests:
+          - not_null
+      - name: trip_end_timestamp
+        description: "Timestamp when the trip ended"
+        tests:
+          - not_null
+      # - name: trip_distance
+      #   description: "Distance of the trip in miles"
+      #   tests:
+      #     - not_null
+          # - relationships:
+          #     to: ref('dim_taxi_drivers')
+          #     field: taxi_id

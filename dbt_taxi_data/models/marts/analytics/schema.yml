@@ -1,0 +1,84 @@
+version: 2
+
+models:
+  - name: top_tip_earners
+    description: "Top 100 taxi drivers by tips earned in last 3 months"
+    columns:
+      - name: taxi_id
+        description: "Taxi driver identifier"
+        tests:
+          - not_null
+      - name: total_tips
+        description: "Total tips earned in period"
+        tests:
+          - not_null
+      - name: total_trips
+        description: "Number of trips in period"
+        tests:
+          - not_null
+      - name: avg_tip_per_trip
+        description: "Average tip per trip"
+        tests:
+          - not_null
+      - name: tip_earner_rank
+        description: "Ranking by total tips"
+        tests:
+          - not_null
+
+  - name: top_overworkers
+    description: "Top 100 drivers working longest hours with insufficient breaks"
+    columns:
+      - name: taxi_id
+        description: "Taxi driver identifier"
+        tests:
+          - not_null
+      - name: total_shifts
+        description: "Number of shifts worked"
+        tests:
+          - not_null
+      - name: avg_shift_hours
+        description: "Average shift length in hours"
+        tests:
+          - not_null
+      - name: total_insufficient_breaks
+        description: "Count of breaks less than 8 hours"
+        tests:
+          - not_null
+      - name: overworker_rank
+        description: "Ranking by total hours worked"
+        tests:
+          - not_null
+
+  # - name: holiday_impact
+  #   description: "Analysis of trip volume around US public holidays"
+  #   columns:
+  #     - name: trip_date
+  #       description: "Date of trip"
+  #       tests:
+  #         - not_null
+  #         - unique
+  #     - name: total_trips
+  #       description: "Number of trips on this date"
+  #       tests:
+  #         - not_null
+  #     - name: is_holiday
+  #       description: "Whether date was a public holiday"
+  #       tests:
+  #         - not_null
+  #     - name: pct_change_from_prev_week
+  #       description: "Percentage change from same day previous week"
+
+assertions:
+  - name: valid_tip_earners
+    description: "Ensure top tip earners have at least 10 trips"
+    query: |
+      SELECT taxi_id
+      FROM ${ref('top_tip_earners')}
+      WHERE total_trips < 10
+
+  - name: valid_overworkers
+    description: "Ensure overworkers have shifts longer than 8 hours"
+    query: |
+      SELECT taxi_id
+      FROM ${ref('top_overworkers')}
+      WHERE avg_shift_hours <= 8
