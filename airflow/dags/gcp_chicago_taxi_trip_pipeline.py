@@ -1,10 +1,21 @@
 from datetime import datetime, timedelta
 from airflow import DAG
-# from airflow.providers.google.cloud.operators.bigquery import BigQueryToGCSOperator
-# from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator
+from airflow.providers.google.cloud.transfers.bigquery_to_gcs import BigQueryToGCSOperator
+from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
+from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator
 from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
-from airflow.operators.empty import DummyOperator
+from airflow.operators.empty import EmptyOperator
+
+
+GCS_BUCKET_NAME = r"gcp-chicago-taxi-details/taxi_trip/stage_data"
+GCS_BASE_PATH = r"taxi_trips*"
+GCP_PROJECT_ID = "gcp-devspace-coder"
+BIGQUERY_DATASET = "taxi_trips_dataset_dtls"
+BIGQUERY_TABLE = "raw_taxi_trips_data"
+PARTITIONING_COLUMN = "date(timestamp(trip_start_timestamp))"
+public_dataset = "bigquery-public-data.chicago_taxi_trips.taxi_trips"
+
 
 default_args_val = {
     "depends_on_past": False,
@@ -16,29 +27,75 @@ default_args_val = {
 with DAG(
     dag_id="Chicago-Taxi-Data-Analysis",
     default_args=default_args_val,
-    schedule_interval=None,
+    schedule=None,
     catchup=False
 ) as dag:
     
-    start_task = DummyOperator(dag=dag, task_id="start")
+    start_task = EmptyOperator(dag=dag, task_id="start")
 
-    # export_public_dataset_to_local_gcs = BigQueryToGCSOperator(
-    #     task_id="export_public_dataset_to_local_gcs",
-    #     source_project_dataset_table="bigquery-public-data.chicago_taxi_trips.taxi_trips",
-    #     destination_cloud_storage_uris=["gs://gcp-chicago-taxi-details/taxi_trip/stage_data/taxi_trips*.parquet"],
-    #     compression='SNAPPY',
-    #     export_format='PARQUET',
-    #     gcp_conn_id='google_cloud_default',
-    #     query="""
-    #     select *
-    #     from bigquery-public-data.chicago_taxi_trips.taxi_trips
-    #     where date(timestamp(trip_Start_timestamp)) >= DATE_SUB((select date(timestamp(max(trip_Start_timestamp)))
-    #     from bigquery-public-data.chicago_taxi_trips.taxi_trips), INTERVAL 3 MONTH)
-    #     """
+    export_public_dataset_to_local_gcs = BigQueryToGCSOperator(
+        task_id="export_public_dataset_to_local_gcs",
+        source_project_dataset_table=public_dataset,
+        destination_cloud_storage_uris=[f"gs://{GCS_BUCKET_NAME}/{GCS_BASE_PATH}.parquet"],
+        compression='SNAPPY',
+        export_format='PARQUET',
+        print_header=True,
+        dag=dag, 
+        project_id=GCP_PROJECT_ID,
+    )
+
+    load_parquet_to_bigquery = BigQueryInsertJobOperator(
+        task_id="load_parquet_to_bigquery",
+        configuration={
+            "load": {
+                "sourceUris": [f"gs://{GCS_BUCKET_NAME}/{GCS_BASE_PATH}.parquet"], 
+                # "sourceUris": [f"gs://{GCS_BUCKET_NAME}/taxi_trips000000000000.parquet"],
+                "destinationTable": {
+                    "projectId": GCP_PROJECT_ID,
+                    "datasetId": BIGQUERY_DATASET,
+                    "tableId": BIGQUERY_TABLE,
+                },
+                "sourceFormat": "PARQUET",
+                "autodetect": True, 
+                "writeDisposition": "WRITE_APPEND", 
+                "timePartitioning": {
+                    "type": "DAY", 
+                    "field": PARTITIONING_COLUMN,
+                    "requirePartitionFilter": True,
+                },
+            }
+        },
+        # gcp_conn_id="gcp-devspace-coder",
+        project_id=GCP_PROJECT_ID, 
+    )
+
+    # export_data_to_gcs = BigQueryInsertJobOperator(
+    #     task_id="export_data_to_gcs",
+    #     project_id='gcp-devspace-coder',  # Destination project for the new table
+    #     configuration={
+    #         "query": {
+    #             "query": f"""
+    #                 select *
+    #                 from bigquery-public-data.chicago_taxi_trips.taxi_trips
+    #                 where date(timestamp(trip_Start_timestamp)) >= DATE_SUB((select date(timestamp(max(trip_Start_timestamp)))
+    #                 from bigquery-public-data.chicago_taxi_trips.taxi_trips), INTERVAL 3 MONTH)
+    #             """,
+    #             "useLegacySql": False,
+    #             "destinationTable": {
+    #                 "projectId": "gcp-devspace-coder",
+    #                 "datasetId": "taxi_trips_dataset",
+    #                 "tableId": "taxi_trips_data",
+    #             },
+    #             "createDisposition": "CREATE_IF_NEEDED",
+    #             "writeDisposition": "WRITE_TRUNCATE",
+    #         }
+    #     },
     # )
 
-    end_task = DummyOperator(dag=dag, task_id="end")
+    end_task = EmptyOperator(dag=dag, task_id="end")
 
-    start_task >> end_task
+    # start_task >> end_task
+    # start_task >> export_data_to_gcs >> end_task
     # start_task >> export_public_dataset_to_local_gcs >> end_task
+    start_task >> load_parquet_to_bigquery >> end_task
     # export_public_dataset_to_local_gcs
