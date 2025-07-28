@@ -1,8 +1,0 @@
-kaggle
-pandas
-apache-airflow[gcp,google]==2.3.0
-apache-airflow-providers-dbt-cloud
-google-cloud-bigquery
-google-cloud-storage
-
-
