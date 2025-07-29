@@ -16,10 +16,3 @@ models:
         description: "Timestamp when the trip ended"
         tests:
           - not_null
-      # - name: trip_distance
-      #   description: "Distance of the trip in miles"
-      #   tests:
-      #     - not_null
-          # - relationships:
-          #     to: ref('dim_taxi_drivers')
-          #     field: taxi_id
