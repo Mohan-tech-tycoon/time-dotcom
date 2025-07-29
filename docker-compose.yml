@@ -12,6 +12,11 @@ services:
       - ./postgres/data:/var/lib/postgresql/data
     networks:
       - api-networks
+    healthcheck:  # Added health check
+      test: ["CMD-SHELL", "pg_isready -U airflow -d airflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   airflow-webserver:
     # build:
@@ -22,18 +27,40 @@ services:
     ports:
       - 8000:8080
     environment:
-      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      GOOGLE_APPLICATION_CREDENTIALS: /opt/airflow/keys/gcp-service-account.json 
     volumes:  
       - ./airflow/dags:/opt/airflow/dags
-      - ./scripts:/opt/airflow/scripts
-      - ./venv:/opt/venv
+      - ./config/gcp-devspace-coder-0a69080761c5.json:/opt/airflow/keys/gcp-service-account.json
+      - ./dbt/dbt_taxi_data:/opt/airflow/dbt
+      - /var/run/docker.sock:/var/run/docker.sock
+    group_add:
+      - '984'
     depends_on:
       - postgresdb
     command: >
-      bash -c "airflow db migrate && airflow standalone"
+      bash -c "
+        airflow db migrate && airflow standalone
+      "
     networks:
       - api-networks
+
+
+  dbt:
+    container_name: dbt_container
+    image: ghcr.io/dbt-labs/dbt-bigquery:1.9.latest
+    volumes:
+      - /home/msgrace/workspace/dev-space/de-project/chicago-taxi-trip/analytics-1/time-dotcom/dbt/dbt_taxi_data:/usr/app/dbt
+      - /home/msgrace/workspace/dev-space/de-project/chicago-taxi-trip/analytics-1/time-dotcom/config/gcp-devspace-coder-0a69080761c5.json:/usr/app/keys/gcp-service-account.json
+    working_dir: /usr/app/dbt
+    environment:
+      DBT_PROFILES_DIR: /usr/app/dbt
+      GOOGLE_APPLICATION_CREDENTIALS: /usr/app/keys/gcp-service-account.json
+    networks:
+      - api-networks
+    command: run
 
 networks:
   api-networks:
     driver: bridge
+    
