@@ -4,7 +4,7 @@ dbt_taxi_data:
       dataset: taxi_trips_dataset
       job_execution_timeout_seconds: 150
       job_retries: 1
-      keyfile: /home/msgrace/workspace/dev-space/de-project/chicago-taxi-trip/analytics-1/time-dotcom/config/gcp-devspace-coder-0a69080761c5.json
+      keyfile: /usr/app/keys/gcp-service-account.json
       location: US
       method: service-account
       priority: interactive
