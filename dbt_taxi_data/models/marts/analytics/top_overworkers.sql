@@ -37,8 +37,7 @@ shift_analysis AS (
     trip_sequences
   GROUP BY 
     taxi_id, DATE(trip_start_timestamp)
---   HAVING
---     COUNT(*) > 3  -- Only consider shifts with at least 3 trips
+
 )
 
 SELECT 
