@@ -1,19 +1,24 @@
 from datetime import datetime, timedelta
 from airflow import DAG
-from airflow.providers.google.cloud.transfers.bigquery_to_gcs import BigQueryToGCSOperator
-from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
-from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator
 from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
 from airflow.operators.empty import EmptyOperator
+from airflow.models import Variable
+import os
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = Variable.get("GCP_CREDENTIALS")
+print("GOOGLE_APPLICATION_CREDENTIALS:", Variable.get("GCP_CREDENTIALS"))   
+from airflow.providers.google.cloud.transfers.bigquery_to_gcs import BigQueryToGCSOperator
+from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
+from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator
 
 
 GCS_BUCKET_NAME = r"gcp-chicago-taxi-details/taxi_trip/stage_data"
 GCS_BASE_PATH = r"taxi_trips*"
-GCP_PROJECT_ID = "gcp-devspace-coder"
-BIGQUERY_DATASET = "taxi_trips_dataset_dtls"
-BIGQUERY_TABLE = "raw_taxi_trips_data"
-PARTITIONING_COLUMN = "date(timestamp(trip_start_timestamp))"
+GCP_PROJECT_ID = Variable.get("GCP_PROJECT_ID")
+BIGQUERY_DATASET = Variable.get("GCP_DATASET")
+BIGQUERY_TABLE = "raw_taxi_trips_data_dtls"
+# PARTITIONING_COLUMN = "date(timestamp(trip_start_timestamp))"
+PARTITIONING_COLUMN = "trip_start_timestamp"
 public_dataset = "bigquery-public-data.chicago_taxi_trips.taxi_trips"
 
 
@@ -58,14 +63,14 @@ with DAG(
                 "sourceFormat": "PARQUET",
                 "autodetect": True, 
                 "writeDisposition": "WRITE_APPEND", 
-                "timePartitioning": {
-                    "type": "DAY", 
-                    "field": PARTITIONING_COLUMN,
-                    "requirePartitionFilter": True,
-                },
+                # "timePartitioning": {
+                #     "type": "DAY", 
+                #     "field": PARTITIONING_COLUMN,
+                #     "requirePartitionFilter": True,
+                # },
             }
         },
-        # gcp_conn_id="gcp-devspace-coder",
+        gcp_conn_id="google_cloud_default",
         project_id=GCP_PROJECT_ID, 
     )
 
@@ -97,5 +102,5 @@ with DAG(
     # start_task >> end_task
     # start_task >> export_data_to_gcs >> end_task
     # start_task >> export_public_dataset_to_local_gcs >> end_task
-    start_task >> load_parquet_to_bigquery >> end_task
+    start_task >> export_public_dataset_to_local_gcs >> load_parquet_to_bigquery >> end_task
     # export_public_dataset_to_local_gcs
