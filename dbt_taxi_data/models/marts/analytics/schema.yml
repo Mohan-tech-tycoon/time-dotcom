@@ -1,4 +1,3 @@
-version: 2
 
 models:
   - name: top_tip_earners
@@ -48,37 +47,3 @@ models:
         description: "Ranking by total hours worked"
         tests:
           - not_null
-
-  # - name: holiday_impact
-  #   description: "Analysis of trip volume around US public holidays"
-  #   columns:
-  #     - name: trip_date
-  #       description: "Date of trip"
-  #       tests:
-  #         - not_null
-  #         - unique
-  #     - name: total_trips
-  #       description: "Number of trips on this date"
-  #       tests:
-  #         - not_null
-  #     - name: is_holiday
-  #       description: "Whether date was a public holiday"
-  #       tests:
-  #         - not_null
-  #     - name: pct_change_from_prev_week
-  #       description: "Percentage change from same day previous week"
-
-assertions:
-  - name: valid_tip_earners
-    description: "Ensure top tip earners have at least 10 trips"
-    query: |
-      SELECT taxi_id
-      FROM ${ref('top_tip_earners')}
-      WHERE total_trips < 10
-
-  - name: valid_overworkers
-    description: "Ensure overworkers have shifts longer than 8 hours"
-    query: |
-      SELECT taxi_id
-      FROM ${ref('top_overworkers')}
-      WHERE avg_shift_hours <= 8
